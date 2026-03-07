@@ -137,11 +137,7 @@ RJMP NEARBY         ; Jump to NEARBY within ±2K words
 
 ### Understanding the Z-Register
 
-The **Z-register** is a 16-bit register pair formed by combining two 8-bit registers:
-* **ZH (Z-High)** = R31 (holds the high byte of the address)
-* **ZL (Z-Low)** = R30 (holds the low byte of the address)
-
-The Z-register is used for **indirect addressing**, meaning it holds a memory address that points to where the CPU should jump or read/write data.
+The **Z-register** is a 16-bit register pair formed by **ZH (R31)** and **ZL (R30)**, where ZH holds the high byte and ZL holds the low byte of an address. It's used for **indirect addressing**, meaning it stores a memory address that tells the CPU where to jump or access data.
 
 ### Explanation of IJMP Example Code
 
