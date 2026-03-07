@@ -457,6 +457,24 @@ A **branch penalty** is an extra clock cycle required to reset the pipeline when
   - Use **NOP** instructions in the loop (NOP = "no operation," wastes time but takes 2 bytes of ROM).
   - Use **nested loops** to create longer delays.
 
+### Disadvantages of Using NOP
+
+While NOP instructions can be useful for creating small delays, they have several drawbacks:
+
+1. **Wastes Program Memory (ROM)**: Each NOP takes **2 bytes** of valuable flash memory. For a 100-instruction delay, that's 200 bytes wasted.
+
+2. **Not Scalable**: For longer delays, you'd need hundreds or thousands of NOPs, making your program unnecessarily large.
+
+3. **Hard to Modify**: If you need to change the delay duration, you must manually add or remove NOP instructions, which is error-prone.
+
+4. **Inefficient**: Nested loops can create the same or longer delays using far less memory. For example:
+   - **10 NOPs** = 20 bytes of ROM
+   - **One nested loop** = ~10 bytes but can create delays equivalent to hundreds of NOPs
+
+5. **Poor Code Readability**: A block of NOP instructions clutters your code and makes it harder to understand.
+
+**Better Alternative**: Use **nested loops** whenever possible. They are more flexible, use less memory, and are easier to adjust.
+
 ### Example 16: Delay Calculation
 
 ![Example 16 - Delay Calculation](assets/images/chapter-4/example%2016.png)
