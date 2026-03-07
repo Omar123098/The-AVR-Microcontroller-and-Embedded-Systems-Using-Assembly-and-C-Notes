@@ -137,7 +137,11 @@ RJMP NEARBY         ; Jump to NEARBY within ±2K words
 
 ### Understanding the Z-Register
 
-The **Z-register** is a 16-bit register pair formed by **ZH (R31)** and **ZL (R30)**, where ZH holds the high byte and ZL holds the low byte of an address. It's used for **indirect addressing**, meaning it stores a memory address that tells the CPU where to jump or access data.
+The **Z-register** is a 16-bit register pair formed by combining two 8-bit registers:
+* **ZH (Z-High)** = R31 (holds the high byte of the address)
+* **ZL (Z-Low)** = R30 (holds the low byte of the address)
+
+The Z-register is used for **indirect addressing**, meaning it holds a memory address that points to where the CPU should jump or read/write data.
 
 ### Explanation of IJMP Example Code
 
@@ -147,23 +151,7 @@ LDI ZL, LOW(TARGET << 1)    ; Load low byte of address
 IJMP                         ; Jump to address in Z
 ```
 
-**Breaking it down:**
-
-1. **`TARGET`**: This is a **label** in your program that represents a memory location (like a line number in your code).
-
-2. **`<< 1`** (Left Shift by 1): 
-   - AVR program memory is **word-addressed** (each instruction is 2 bytes).
-   - However, the Z-register expects a **byte address**.
-   - By shifting left by 1 bit (`<< 1`), we convert the word address to a byte address (multiply by 2).
-   - Example: If `TARGET` is at word address 100, `TARGET << 1` = 200 (byte address).
-
-3. **`HIGH(TARGET << 1)`**: Extracts the **upper 8 bits** (high byte) of the 16-bit address.
-   - Example: If the address is 0x1234, `HIGH(0x1234)` = 0x12.
-
-4. **`LOW(TARGET << 1)`**: Extracts the **lower 8 bits** (low byte) of the 16-bit address.
-   - Example: If the address is 0x1234, `LOW(0x1234)` = 0x34.
-
-5. **`IJMP`**: Jumps to the address stored in Z (R31:R30).
+**Explanation:** `TARGET` is a label in your code. The `<< 1` shifts left by 1 (converts word address to byte address by multiplying by 2). `HIGH()` extracts the upper 8 bits and `LOW()` extracts the lower 8 bits of the address. `IJMP` then jumps to the address stored in Z.
 
 **Simple Example Without Complex Syntax:**
 
@@ -315,12 +303,7 @@ LDI ZL, LOW(FUNC << 1)      ; Load function address low byte
 ICALL                        ; Call function at address in Z
 ```
 
-**Explanation** (same as IJMP explained earlier):
-* **`FUNC`** is a label representing a subroutine location.
-* **`<< 1`** converts word address to byte address (multiply by 2).
-* **`HIGH(FUNC << 1)`** gets the upper 8 bits of the address.
-* **`LOW(FUNC << 1)`** gets the lower 8 bits of the address.
-* **`ICALL`** calls the subroutine at the address stored in Z, and saves the return address on the stack.
+**Explanation:** Same as IJMP above—`FUNC` is a label, `<< 1` converts word to byte address, `HIGH()` and `LOW()` extract address bytes, and `ICALL` calls the subroutine at Z while saving the return address on the stack.
 
 **Simple Example Using Known Addresses:**
 
