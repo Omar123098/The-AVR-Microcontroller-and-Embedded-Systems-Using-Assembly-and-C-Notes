@@ -70,14 +70,6 @@ Copies the value from one register to another.
 MOV R1, R16      ; Copies R16 into R1. R16 remains unchanged.
 ```
 
-**LD and ST (Indirect Memory Access)**
-Uses the X, Y, or Z 16-bit registers as pointers to memory addresses. 
-```assembly
-LDI ZH, HIGH(0x0100) ; Load high byte of array address into Z pointer
-LDI ZL, LOW(0x0100)  ; Load low byte of array address into Z pointer
-LD R16, Z+           ; Load data at address Z into R16, auto-increment Z
-```
-
 ### I/O Register Operations
 
 **IN Rd, A (In from I/O Location)**
