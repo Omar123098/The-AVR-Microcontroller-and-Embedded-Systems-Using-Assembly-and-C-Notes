@@ -41,7 +41,15 @@ OUT PORTB, R20      ; send sum to PORTB
 
 ### Loop Inside a Loop
 
+**What is a Nested Loop?**
+
+A nested loop is a loop inside another loop. The **inner loop** completes all its iterations for each single iteration of the **outer loop**. This technique is extremely useful when you need to create longer delays or perform repetitive tasks multiple times.
+
+For example, if the outer loop runs 10 times and the inner loop runs 70 times, the inner loop body executes a total of **10 × 70 = 700 times**.
+
 **Example: Load PORTB with 0x55 and complement it 700 times**
+
+Let's say we want to toggle the bits of PORTB 700 times. Instead of using a single counter that counts to 700, we can use two nested loops: an outer loop that runs 10 times and an inner loop that runs 70 times.
 
 ```assembly
 LDI R16, 0x55       ; R16 = 0x55
@@ -101,6 +109,25 @@ JMP TARGET          ; Jump to TARGET anywhere in memory
 RJMP NEARBY         ; Jump to NEARBY within ±2K words
 ```
 
+---
+
+### Jump Instructions Comparison
+
+| Instruction | Type | Size | Range | Use Case |
+|------------|------|------|-------|----------|
+| **BRNE, BREQ, BRSH** | Conditional Branch | 2 bytes | ±64 bytes | Short conditional jumps within nearby code |
+| **JMP** | Unconditional Jump | 4 bytes | 4M words (entire memory) | Long jumps to any location in program memory |
+| **RJMP** | Relative Jump | 2 bytes | ±2K words (±2048 words) | Short jumps within local code sections |
+| **IJMP** | Indirect Jump | 2 bytes | Any location via Z-register | Dynamic jumps (switch-case, function tables) |
+
+**Key Differences:**
+* **Conditional vs Unconditional**: Conditional branches check flags (Z, C, etc.); unconditional jumps always execute.
+* **Size**: Larger instructions (4 bytes) can reach farther but consume more memory.
+* **Speed**: Smaller instructions are generally faster and more efficient.
+* **Flexibility**: Indirect jumps (IJMP) offer runtime flexibility but require setup.
+
+---
+
 **IJMP (Indirect Jump)**
 
 * Sends the processor to an address stored in the **Z-register (R31:R30)**.
@@ -108,10 +135,49 @@ RJMP NEARBY         ; Jump to NEARBY within ±2K words
 * Perfect for **switch-case blocks** and **function pointers**.
 * **2-byte instruction**.
 
+### Understanding the Z-Register
+
+The **Z-register** is a 16-bit register pair formed by combining two 8-bit registers:
+* **ZH (Z-High)** = R31 (holds the high byte of the address)
+* **ZL (Z-Low)** = R30 (holds the low byte of the address)
+
+The Z-register is used for **indirect addressing**, meaning it holds a memory address that points to where the CPU should jump or read/write data.
+
+### Explanation of IJMP Example Code
+
 ```assembly
 LDI ZH, HIGH(TARGET << 1)   ; Load high byte of address
 LDI ZL, LOW(TARGET << 1)    ; Load low byte of address
 IJMP                         ; Jump to address in Z
+```
+
+**Breaking it down:**
+
+1. **`TARGET`**: This is a **label** in your program that represents a memory location (like a line number in your code).
+
+2. **`<< 1`** (Left Shift by 1): 
+   - AVR program memory is **word-addressed** (each instruction is 2 bytes).
+   - However, the Z-register expects a **byte address**.
+   - By shifting left by 1 bit (`<< 1`), we convert the word address to a byte address (multiply by 2).
+   - Example: If `TARGET` is at word address 100, `TARGET << 1` = 200 (byte address).
+
+3. **`HIGH(TARGET << 1)`**: Extracts the **upper 8 bits** (high byte) of the 16-bit address.
+   - Example: If the address is 0x1234, `HIGH(0x1234)` = 0x12.
+
+4. **`LOW(TARGET << 1)`**: Extracts the **lower 8 bits** (low byte) of the 16-bit address.
+   - Example: If the address is 0x1234, `LOW(0x1234)` = 0x34.
+
+5. **`IJMP`**: Jumps to the address stored in Z (R31:R30).
+
+**Simple Example Without Complex Syntax:**
+
+If you already know the byte address and want to jump there directly:
+
+```assembly
+; Jump to byte address 0x0150
+LDI ZH, 0x01        ; Load high byte (0x01)
+LDI ZL, 0x50        ; Load low byte (0x50)
+IJMP                ; Jump to address 0x0150
 ```
 
 ---
@@ -123,6 +189,48 @@ IJMP                         ; Jump to address in Z
 * **4-byte instruction** (10 bits opcode, 22 bits address).
 * Used to call subroutines located anywhere within the **4M address space** (`0x000000` to `0x3FFFFF`).
 * The microcontroller automatically saves the return address (address of the instruction immediately after CALL) on the stack.
+
+### Why Do We Need CALL?
+
+A **subroutine** (also called a function) is a reusable block of code that performs a specific task. Instead of writing the same code multiple times, you write it once as a subroutine and **call** it whenever needed.
+
+**Benefits:**
+* **Code Reusability**: Write once, use many times.
+* **Modularity**: Break complex programs into smaller, manageable pieces.
+* **Easier Debugging**: Test and fix one function at a time.
+
+### Simple CALL Example
+
+```assembly
+; Main program
+.ORG 0x0000
+    LDI R16, HIGH(RAMEND)   ; Initialize stack pointer
+    OUT SPH, R16
+    LDI R16, LOW(RAMEND)
+    OUT SPL, R16
+    
+    LDI R20, 5              ; Load R20 with 5
+    LDI R21, 10             ; Load R21 with 10
+    CALL ADD_NUMBERS        ; Call subroutine to add numbers
+    OUT PORTB, R22          ; Send result to PORTB
+    RJMP END                ; End program
+
+; Subroutine: Add two numbers
+ADD_NUMBERS:
+    ADD R22, R20            ; R22 = R20 + R21
+    ADD R22, R21
+    RET                     ; Return to caller
+
+END:
+    RJMP END                ; Infinite loop
+```
+
+**What happens:**
+1. Main program loads values into R20 and R21.
+2. `CALL ADD_NUMBERS` saves the return address on the stack and jumps to the subroutine.
+3. Subroutine adds the numbers and stores the result in R22.
+4. `RET` pops the return address from the stack and returns to the main program.
+5. Result is sent to PORTB.
 
 ### Stack Initialization
 
@@ -139,6 +247,8 @@ LDI R16, LOW(RAMEND)    ; Load low byte of RAMEND
 OUT SPL, R16            ; Initialize SPL
 ```
 
+![Example 8 - Stack Operation Visualization](assets/images/chapter-4/example%208.png)
+
 ### How CALL Works
 
 1. When a subroutine is **called**, the processor saves the address of the instruction immediately after the CALL on the stack.
@@ -153,6 +263,15 @@ OUT SPL, R16            ; Initialize SPL
 * The stack **must not** be defined in register memory (0x00–0x1F) or I/O memory (0x20–0x5F). It must be in SRAM (`>= 0x60`).
 * In AVR, the stack is used for **calls** and **interrupts**.
 
+### Complete CALL Example
+
+![Example 9 - Full CALL Example with Stack](assets/images/chapter-4/example%209.png)
+
+This diagram shows:
+* How the Program Counter (PC) is saved on the stack when CALL is executed.
+* How the stack pointer (SP) changes during PUSH and POP operations.
+* How RET restores the PC and returns to the instruction after the CALL.
+
 ---
 
 ### RCALL (Relative Call)
@@ -161,9 +280,27 @@ OUT SPL, R16            ; Initialize SPL
 * Similar to CALL, but with a **shorter range**.
 * The only difference is the scope: RCALL has a limited address range compared to CALL.
 
+**Example:**
 ```assembly
-RCALL SUBROUTINE    ; Call subroutine within ±2K words
+; Main program
+MAIN:
+    LDI R16, 0xFF
+    RCALL DELAY         ; Call delay subroutine (must be within ±2K words)
+    OUT PORTB, R16
+    RJMP MAIN
+
+; Delay subroutine
+DELAY:
+    LDI R18, 255
+DELAY_LOOP:
+    DEC R18
+    BRNE DELAY_LOOP
+    RET                 ; Return to caller
 ```
+
+**When to use RCALL vs CALL:**
+* Use **RCALL** when the subroutine is nearby (saves 2 bytes of memory per call).
+* Use **CALL** when the subroutine is far away or when writing large programs.
 
 ---
 
@@ -174,11 +311,56 @@ RCALL SUBROUTINE    ; Call subroutine within ±2K words
 * **Saves the return address**: Pushes the current PC onto the stack.
 * **Jumps to the Z-pointer**: Loads the address stored in the Z-register (R31:R30) into the PC.
 
+### Understanding ICALL Example
+
 ```assembly
 LDI ZH, HIGH(FUNC << 1)     ; Load function address high byte
 LDI ZL, LOW(FUNC << 1)      ; Load function address low byte
 ICALL                        ; Call function at address in Z
 ```
+
+**Explanation** (same as IJMP explained earlier):
+* **`FUNC`** is a label representing a subroutine location.
+* **`<< 1`** converts word address to byte address (multiply by 2).
+* **`HIGH(FUNC << 1)`** gets the upper 8 bits of the address.
+* **`LOW(FUNC << 1)`** gets the lower 8 bits of the address.
+* **`ICALL`** calls the subroutine at the address stored in Z, and saves the return address on the stack.
+
+**Simple Example Using Known Addresses:**
+
+```assembly
+; Table of function pointers
+FUNC_TABLE:
+    .DW FUNC_ADD        ; Word 0: Address of ADD function
+    .DW FUNC_SUB        ; Word 1: Address of SUB function
+    .DW FUNC_MUL        ; Word 2: Address of MUL function
+
+; Select and call function #1 (FUNC_SUB)
+MAIN:
+    LDI R16, 1              ; Select function index 1
+    ; Calculate address: FUNC_TABLE + (R16 * 2)
+    LDI ZH, HIGH(FUNC_TABLE << 1)
+    LDI ZL, LOW(FUNC_TABLE << 1)
+    ADD ZL, R16             ; Add offset
+    LDI R17, 0
+    ADC ZH, R17             ; Add carry if any
+    ICALL                   ; Call the selected function
+    ; ... rest of code
+
+FUNC_ADD:
+    ; Add function code
+    RET
+
+FUNC_SUB:
+    ; Subtract function code
+    RET
+
+FUNC_MUL:
+    ; Multiply function code
+    RET
+```
+
+**Use Case**: ICALL is perfect for implementing **function dispatch tables**, where you select which function to call based on a variable or user input (like a menu system).
 
 ---
 
