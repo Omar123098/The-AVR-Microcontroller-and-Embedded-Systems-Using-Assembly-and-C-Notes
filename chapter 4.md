@@ -212,7 +212,13 @@ The AVR architecture uses three core design strategies:
   2. **ALU Operation Execution**
   3. **Result Write Back**
 
+![Single Cycle ALU Operation](assets/images/chapter-4/single%20cycle%20ALU%20operation.png)
+
 With pipelining, while one instruction is in the execution stage, the next instruction is already being fetched.
+
+![Pipelining Concept](assets/images/chapter-4/piplining.png)
+
+![Pipeline Activity for Both Fetch and Execute](assets/images/chapter-4/Pipeline%20Activity%20for%20Both%20Fetch%20and%20Execute.png)
 
 ---
 
@@ -269,11 +275,13 @@ A **branch penalty** is an extra clock cycle required to reset the pipeline when
   - Use **NOP** instructions in the loop (NOP = "no operation," wastes time but takes 2 bytes of ROM).
   - Use **nested loops** to create longer delays.
 
-**Example 16:** *(See diagram for detailed delay calculation)*
+### Example 16: Delay Calculation
 
-**Example 18:** *(See diagram for nested loop delay example)*
+![Example 16 - Delay Calculation](assets/images/chapter-4/example%2016.png)
 
-> **Note:** Refer to example diagrams `[example 16.gpj]` and `[example 18]` for visual step-by-step delay calculations.
+### Example 18: Nested Loop Delay
+
+![Example 18 - Nested Loop Delay Example](assets/images/chapter-4/example%2018.png)
 
 ---
 
