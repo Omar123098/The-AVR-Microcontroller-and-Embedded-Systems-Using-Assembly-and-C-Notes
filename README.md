@@ -29,31 +29,105 @@ The memory is composed of three parts:
 
 #### Section 3: Data Transfer Instructions
 
-```assembly
-LDS Rd, K    ; Load Rd (0 <= d <= 31) from location K
-             ; 0000 <= K <= FFFF
+### 1. Data Transfer (SRAM & Registers)
 
-STS K, Rr    ; Store Rr to location K
-             ; 0000 <= K <= FFFF
 
-IN Rd, A     ; Load an I/O location (A) to Rd
-             ; 0 <= A <= 63 , 0 <= d <= 31
 
-OUT A, Rr    ; Store register to I/O
+**LDS Rd, K (Load Direct from SRAM)**
+* **Description:** Copies a byte from a 16-bit SRAM address into a register.
+* **Example:**
+    ```assembly
+    LDS R16, 0x0100  ; Reads the byte stored at SRAM address 0x0100 
+                     ; and copies it into Register R16.
+    ```
 
-MOV Rd, Rr   ; Rd = Rr
+**STS K, Rr (Store Direct to SRAM)**
+* **Description:** Copies a byte from a register into a 16-bit SRAM address.
+* **Example:**
+    ```assembly
+    STS 0x0250, R17  ; Takes the value in R17 and saves it 
+                     ; into SRAM address 0x0250.
+    ```
 
-INC Rd       ; Rd = Rd + 1
+**MOV Rd, Rr (Copy Register)**
+* **Description:** Copies the value from one register to another.
+* **Example:**
+    ```assembly
+    MOV R1, R16      ; Copies the contents of R16 into R1. 
+                     ; R16 remains unchanged.
+    ```
 
-SUB Rd, Rr   ; Rd = Rd - Rr (without carry)
+---
 
-SBC Rd, Rr   ; Rd = Rd - Rr (with carry)
+### 2. I/O Register Operations
 
-DEC Rd       ; Rd = Rd - 1
 
-COM Rd       ; Rd's complement (1's complement)
-```
 
+**IN Rd, A (In from I/O Location)**
+* **Description:** Reads data from an I/O register (like pins or timers) into a CPU register.
+* **Example:**
+    ```assembly
+    IN R20, 0x16     ; Reads the input pins of Port B (PINB) into R20.
+                     ; (0x16 is the standard I/O address for PINB).
+    ```
+
+**OUT A, Rr (Out to I/O Location)**
+* **Description:** Sends data from a CPU register to an I/O register (like turning on an LED).
+* **Example:**
+    ```assembly
+    LDI R18, 0xFF    ; Load 255 (binary 11111111) into R18.
+    OUT 0x18, R18    ; Write R18 to Port B (PORTB address 0x18).
+                     ; This sets all pins on Port B to HIGH.
+    ```
+
+---
+
+### 3. Arithmetic and Logic
+
+
+
+**INC Rd (Increment)**
+* **Description:** Adds 1 to the value in the register.
+* **Example:**
+    ```assembly
+    LDI R16, 10      ; R16 = 10
+    INC R16          ; R16 = 11
+    ```
+
+**DEC Rd (Decrement)**
+* **Description:** Subtracts 1 from the value in the register.
+* **Example:**
+    ```assembly
+    LDI R17, 5       ; R17 = 5
+    DEC R17          ; R17 = 4
+    ```
+
+**SUB Rd, Rr (Subtract without Carry)**
+* **Description:** Subtracts the source register from the destination register.
+* **Example:**
+    ```assembly
+    LDI R20, 15      ; R20 = 15
+    LDI R21, 5       ; R21 = 5
+    SUB R20, R21     ; R20 = 15 - 5. Result in R20 is 10.
+    ```
+
+**SBC Rd, Rr (Subtract with Carry)**
+* **Description:** Subtracts the source register AND the Carry flag from the destination. Used for multi-byte math.
+* **Example:**
+    ```assembly
+    ; Subtracting 16-bit numbers (R17:R16 - R19:R18)
+    SUB R16, R18     ; Subtract low bytes
+    SBC R17, R19     ; Subtract high bytes with carry from previous step
+    ```
+
+**COM Rd (One's Complement)**
+* **Description:** Flips all bits in the register (NOT operation).
+* **Example:**
+    ```assembly
+    LDI R16, 0b11110000 ; R16 = 0xF0
+    COM R16             ; R16 now becomes 0b00001111 (0x0F)
+    ```
+    
 **IN vs LDS Comparison**
 
 | Feature | `IN` Instruction | `LDS` Instruction |
