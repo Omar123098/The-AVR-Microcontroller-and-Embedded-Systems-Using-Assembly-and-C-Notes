@@ -143,19 +143,7 @@ The **Z-register** is a 16-bit register pair formed by combining two 8-bit regis
 
 The Z-register is used for **indirect addressing**, meaning it holds a memory address that points to where the CPU should jump or read/write data.
 
-### Explanation of IJMP Example Code
-
-```assembly
-LDI ZH, HIGH(TARGET << 1)   ; Load high byte of address
-LDI ZL, LOW(TARGET << 1)    ; Load low byte of address
-IJMP                         ; Jump to address in Z
-```
-
-**Explanation:** `TARGET` is a label in your code. The `<< 1` shifts left by 1 (converts word address to byte address by multiplying by 2). `HIGH()` extracts the upper 8 bits and `LOW()` extracts the lower 8 bits of the address. `IJMP` then jumps to the address stored in Z.
-
-**Simple Example Without Complex Syntax:**
-
-If you already know the byte address and want to jump there directly:
+### IJMP Example
 
 ```assembly
 ; Jump to byte address 0x0150
@@ -295,48 +283,15 @@ DELAY_LOOP:
 * **Saves the return address**: Pushes the current PC onto the stack.
 * **Jumps to the Z-pointer**: Loads the address stored in the Z-register (R31:R30) into the PC.
 
-### Understanding ICALL Example
+### ICALL Example
 
 ```assembly
-LDI ZH, HIGH(FUNC << 1)     ; Load function address high byte
-LDI ZL, LOW(FUNC << 1)      ; Load function address low byte
-ICALL                        ; Call function at address in Z
-```
-
-**Explanation:** Same as IJMP above—`FUNC` is a label, `<< 1` converts word to byte address, `HIGH()` and `LOW()` extract address bytes, and `ICALL` calls the subroutine at Z while saving the return address on the stack.
-
-**Simple Example Using Known Addresses:**
-
-```assembly
-; Table of function pointers
-FUNC_TABLE:
-    .DW FUNC_ADD        ; Word 0: Address of ADD function
-    .DW FUNC_SUB        ; Word 1: Address of SUB function
-    .DW FUNC_MUL        ; Word 2: Address of MUL function
-
-; Select and call function #1 (FUNC_SUB)
-MAIN:
-    LDI R16, 1              ; Select function index 1
-    ; Calculate address: FUNC_TABLE + (R16 * 2)
-    LDI ZH, HIGH(FUNC_TABLE << 1)
-    LDI ZL, LOW(FUNC_TABLE << 1)
-    ADD ZL, R16             ; Add offset
-    LDI R17, 0
-    ADC ZH, R17             ; Add carry if any
-    ICALL                   ; Call the selected function
-    ; ... rest of code
-
-FUNC_ADD:
-    ; Add function code
-    RET
-
-FUNC_SUB:
-    ; Subtract function code
-    RET
-
-FUNC_MUL:
-    ; Multiply function code
-    RET
+; Simple direct call using known byte address
+; Call function at byte address 0x0200
+LDI ZH, 0x02        ; Load high byte (0x02)
+LDI ZL, 0x00        ; Load low byte (0x00)
+ICALL               ; Call function at address 0x0200
+; ... code continues after RET
 ```
 
 **Use Case**: ICALL is perfect for implementing **function dispatch tables**, where you select which function to call based on a variable or user input (like a menu system).
