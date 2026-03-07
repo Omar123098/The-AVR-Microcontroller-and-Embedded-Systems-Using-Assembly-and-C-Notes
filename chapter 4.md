@@ -391,6 +391,30 @@ A **branch penalty** is an extra clock cycle required to reset the pipeline when
   - Use **NOP** instructions in the loop (NOP = "no operation," wastes time but takes 2 bytes of ROM).
   - Use **nested loops** to create longer delays.
 
+### Example of Using NOP for Delay
+
+Here's a simple example using NOP instructions to create a short delay:
+
+```assembly
+; Create a delay using a loop with NOP instructions
+DELAY:
+    LDI R16, 100        ; Load counter with 100
+DELAY_LOOP:
+    NOP                 ; No operation (1 cycle)
+    NOP                 ; No operation (1 cycle)
+    NOP                 ; No operation (1 cycle)
+    NOP                 ; No operation (1 cycle)
+    NOP                 ; No operation (1 cycle)
+    DEC R16             ; Decrement counter (1 cycle)
+    BRNE DELAY_LOOP     ; Branch if not zero (1/2 cycles)
+    RET                 ; Return from subroutine
+```
+
+**Calculation:**
+* Each loop iteration: 5 NOPs (5 cycles) + DEC (1 cycle) + BRNE (2 cycles when true) = 8 cycles
+* Total cycles: 100 iterations × 8 cycles = 800 cycles
+* At 1 MHz: 800 µs delay
+
 ### Disadvantages of Using NOP
 
 While NOP instructions can be useful for creating small delays, they have several drawbacks:
