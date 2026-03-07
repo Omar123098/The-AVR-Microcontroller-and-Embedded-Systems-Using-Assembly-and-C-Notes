@@ -11,9 +11,3 @@ I am organizing chapter-by-chapter markdown notes with diagrams and references, 
 - [Chapter 3 Notes](chapter%203.md)
 - [Chapter 4 Notes](chapter%204.md)
 - [Book PDF](assets/book/AVR%20and%20Embedded%20Systems.pdf)
-
-## Chapter 3 Assets
-
-- `assets/images/chapter-3/IO Registers of the ATmega32.png`
-- `assets/images/chapter-3/Instructions That Affect Flag Bits.png`
-- `assets/images/chapter-3/Steps to create a program.png`
