@@ -52,16 +52,16 @@ For example, if the outer loop runs 10 times and the inner loop runs 70 times, t
 Let's say we want to toggle the bits of PORTB 700 times. Instead of using a single counter that counts to 700, we can use two nested loops: an outer loop that runs 10 times and an inner loop that runs 70 times.
 
 ```assembly
-LDI R16, 0x55       ; R16 = 0x55
-OUT PORTB, R16      ; PORTB = 0x55
-LDI R20, 10         ; load 10 into R20 (outer loop count)
-LOP_1: LDI R21, 70  ; load 70 into R21 (inner loop count)
-LOP_2: COM R16      ; complement R16
-OUT PORTB, R16      ; load PORTB SFR with the complemented value
-DEC R21             ; dec R21 (inner loop)
-BRNE LOP_2          ; repeat it 70 times
-DEC R20             ; dec R20 (outer loop)
-BRNE LOP_1          ; repeat it 10 times
+        LDI R16, 0x55       ; R16 = 0x55
+        OUT PORTB, R16      ; PORTB = 0x55
+        LDI R20, 10         ; load 10 into R20 (outer loop count)
+LOP_1:  LDI R21, 70         ; load 70 into R21 (inner loop count)
+LOP_2:  COM R16             ; complement R16
+        OUT PORTB, R16      ; load PORTB SFR with the complemented value
+        DEC R21             ; dec R21 (inner loop)
+        BRNE LOP_2          ; repeat it 70 times
+        DEC R20             ; dec R20 (outer loop)
+        BRNE LOP_1          ; repeat it 10 times
 ```
 
 ### Other Conditional Branches
